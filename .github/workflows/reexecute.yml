@@ -1,0 +1,22 @@
+name: PurpleAir-HOBO reexecution
+on: [workflow_dispatch]
+jobs:
+  reexecute:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12.7'
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Verify inputs
+        run: |
+          echo "ff71375ae2e721788908e158dd54110d6da9a0824cfd929c94a3bcc2852f86af  master_df.csv" | sha256sum -c -
+          echo "12fe3b85a78356415d1e8f87bec874410d69bab182d60bab61bcc445ec92714b  master_df_with_splits.csv" | sha256sum -c -
+      - name: Run frozen bundle
+        run: python run_purpleair_m2_conformal.py --csv master_df.csv --splits master_df_with_splits.csv --out reexecution_result.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: purpleair-reexecution-result
+          path: reexecution_result.json
